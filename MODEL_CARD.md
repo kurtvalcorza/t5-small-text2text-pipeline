@@ -20,7 +20,11 @@ base_model: google-t5/t5-small
 
 ## Interactive Colab Tutorials
 
-This release ships no tutorial notebook (`tutorials/` is absent). The package is exercised through its test suite (`tests/`) and the run instructions in the README; a `NOTEBOOK_SPEC` 1.0 `TASK-INFERENCE` notebook is a follow-up, not a claim this card makes.
+This pipeline provides a ready-to-run interactive Google Colab notebook that exercises the repository's public API end to end — bootstrap a fresh runtime, stage and verify the pinned upstream revision, validate an input, run the task, and inspect and export the outputs:
+
+- **Task Inference Tutorial**:  
+  [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/kurtvalcorza/t5-small-text2text-pipeline/blob/main/tutorials/t5_small_text2text_colab.ipynb) [`t5_small_text2text_colab.ipynb`](https://github.com/kurtvalcorza/t5-small-text2text-pipeline/blob/main/tutorials/t5_small_text2text_colab.ipynb)  
+  *Caller-prefixed text-to-text generation with the pinned `google-t5/t5-small` weights (`translate English to German: `, `summarize: `): greedy deterministic decoding with an explicit token budget; the pipeline invents no prefixes and reports no metric (ROUGE/BLEU need references).*
 
 ---
 
