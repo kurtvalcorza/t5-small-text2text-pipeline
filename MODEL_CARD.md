@@ -3,6 +3,8 @@ license: apache-2.0
 model_card_spec: "1.1"
 pipeline_tag: text2text-generation
 base_model: google-t5/t5-small
+date_published: "2019-10"
+date_published_source: "google-research/text-to-text-transfer-transformer initial release 2019-10-23 (arXiv:1910.10683 v1 same day); Hub history begins 2019-12-11"
 ---
 
 # T5-Small (DIMER package v0.1.0) — Text-to-Text Transfer Transformer (Text2Text Generation)
@@ -11,7 +13,6 @@ base_model: google-t5/t5-small
 [![Upstream GitHub](https://img.shields.io/badge/Upstream%20GitHub-google--research%2Ftext--to--text--transfer--transformer-181717?style=flat&logo=github&logoColor=white)](https://github.com/google-research/text-to-text-transfer-transformer)
 [![arXiv Paper](https://img.shields.io/badge/arXiv-1910.10683-b31b1b.svg)](https://arxiv.org/abs/1910.10683)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache--2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
-[![Pipeline](https://img.shields.io/badge/Pipeline-t5--small--text2text--pipeline-2ea44f?style=flat&logo=github)](https://github.com/kurtvalcorza/t5-small-text2text-pipeline)
 
 > [!WARNING]
 > ⚠️ **Provided for research, training, and evaluation purposes only.** Model weights are redistributed unmodified under their upstream license, which controls your use, including any commercial use or redistribution; the accompanying code and notebooks are released under this repository's license. All of it is supplied **"as is"**, without warranty of any kind, and has not been validated for production, clinical, or safety-critical use. Running the notebooks downloads third-party weights and datasets governed by their own licenses and consumes compute on your own Colab/Kaggle account. To the maximum extent permitted by law, the maintainers of this repository and the DIMER platform accept no liability for any damages arising from their use. Hosting implies no affiliation with or endorsement by the original authors.
@@ -28,7 +29,7 @@ This pipeline provides a ready-to-run interactive Google Colab notebook that exe
 
 ---
 
-###### Description
+#### Description
 
 `google-t5/t5-small` is the 60-million-parameter checkpoint of the original Text-To-Text Transfer Transformer released by Raffel et al. (JMLR 21(140), 2020; arXiv:1910.10683), pinned here to revision `df1b051c49625cf57a3d0d8d3863ed4d13564fe4`. It is a standard encoder-decoder Transformer: 6 encoder and 6 decoder layers, `d_model` 512, 8 attention heads of width 64, feed-forward width 2048, relative position biases with 32 buckets instead of absolute position embeddings, and a shared SentencePiece vocabulary of 32,128 pieces (`spiece.model`, 100 of them sentinel `<extra_id_N>` tokens) — all read from the snapshot `config.json` and `tokenizer_config.json`. The checkpoint was pre-trained with a span-corruption denoising objective on C4 and simultaneously on a supervised multi-task mixture in which every task is cast as text in, text out, with a plain-language prefix naming the task (upstream README, "Training Details"); this is the pre-FLAN T5, not an instruction-tuned model. At inference the encoder reads the prefixed input once, then the decoder emits one SentencePiece token per step, starting from the pad token (`decoder_start_token_id` 0) and stopping at `</s>` (id 1) or a step ceiling; nothing is adapted, fine-tuned or conditioned beyond the text the caller supplies. What this repository adds is packaging: the `T5SmallText2TextPipeline` class in `src/t5_small_text2text_pipeline/pipeline.py`, digest verification of the local snapshot (`verify_snapshot`, `stage_missing_files`), input validation with named ceilings, a fixed output contract, and no task prefixes of its own — the caller writes `summarize: ` or `translate English to German: ` in front of the text.
 
