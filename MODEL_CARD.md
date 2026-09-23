@@ -42,7 +42,7 @@ The task is conditional text generation: input one UTF-8 string that begins with
 
 ###### Primary Intended Users
 
-The intended users are machine-learning engineers, NLP researchers and application developers integrating a seq2seq baseline into research prototypes, internal tooling, or the DIMER model workbench. The pipeline assumes its users understand that the model follows only the trained prefixes and not free-form instructions, that greedy decoding returns one deterministic candidate rather than a probability over outputs, that generated text can be fluent and wrong, that the model reads at most 512 SentencePiece tokens of input, and that any quality claim on their own documents needs reference outputs and a ROUGE/BLEU-style scorer they supply. It is not designed for hobbyist "chat with the model" use; there is no chat template and no instruction following.
+The intended users are machine-learning engineers, NLP researchers and application developers integrating a seq2seq baseline into research prototypes or in-house tooling. The pipeline assumes its users understand that the model follows only the trained prefixes and not free-form instructions, that greedy decoding returns one deterministic candidate rather than a probability over outputs, that generated text can be fluent and wrong, that the model reads at most 512 SentencePiece tokens of input, and that any quality claim on their own documents needs reference outputs and a ROUGE/BLEU-style scorer they supply. It is not designed for hobbyist "chat with the model" use; there is no chat template and no instruction following.
 
 ###### Out-of-scope use cases
 
