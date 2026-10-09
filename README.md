@@ -50,7 +50,7 @@ Tests are offline: they use an injected fake runner and token counter plus tempo
 
 ## Release status
 
-**Candidate.** Static/unit checks do not constitute clean-runtime notebook evidence. The clean-runtime run of the tutorial is pending; complete `docs/release-verification.md` against the exact release revision before calling the notebook release-grade. See `STATUS.md`.
+**Candidate** — the review-fix blob `7cdec4b16f48` (commit `77f629f`; isolated `uv` environment, referenced SciTLDR-A sample, guided layer, T5S-M1..M3 / T5S-m1..m2 fixes) completed one pass with no restart and 0 errors on a fresh Colab Tesla T4 on 2026-10-09 (Colab CLI 0.7.4 sequential execution, 10/10 code cells, 112.2 s; isolated Python 3.12.12, torch 2.14.0+cu130, transformers 4.57.6, `cuda:0`; ROUGE-1/2/L 28.62 / 10.72 / 22.51 beside Lead-1 27.22 / 11.12 / 22.22 on the 20-item sample, verdict `sample-sanity`, 0 outputs stopped by `max_new_tokens`); the record is in `docs/release-verification.md` and `STATUS.md`. REL12 BYOD exercise (path-based and upload, `.txt` and `.csv` with references, a refused Latin-1 file) and the optional `NUM_BEAMS = 4` activity are pending on a hosted runtime, so the status stays Candidate (REL14). Static/unit checks do not constitute clean-runtime notebook evidence. The notebook builds its own isolated `uv` Python 3.12.12 environment from the hash-locked `tutorials/requirements-colab.lock.txt`, so nothing is installed into the kernel and `Run all` needs no restart (Linux x86_64 runtimes only).
 
 ## Licensing
 

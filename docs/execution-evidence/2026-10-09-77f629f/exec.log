@@ -1,0 +1,90 @@
+[colab] Parsing notebook '/home/kurt/colab-runs/t5-small-text2text-pipeline-77f629f-daab06/t5_small_text2text_colab_77f629f_colab-cli-t4.ipynb'...
+[colab] Executing cell 1/10 - Infrastructure: install the locked runtime into an isolated environment...
+{'isolated_environment': '/content/dimer_isolated_env', 'isolated_python': '3.12.12', 'kernel_python': '3.13.15', 'locked_packages': 48, 'setup_seconds': 65}
+[colab] Executing cell 2/10 - Route the remaining cells to the isolated environment...
+Every later code cell now runs in /content/dimer_isolated_env/bin/python (pid 2387).
+[colab] Executing cell 3/10 - Infrastructure: record the pinned runtime and the notebook source...
+{'notebook_source': {'repository': 't5-small-text2text-pipeline', 'repository_revision': '19433dd4c5d3df285020ff62498814b11126d1c0', 'embedded_module': 'src/t5_small_text2text_pipeline/pipeline.py', 'embedded_modules': ['src/t5_small_text2text_pipeline/pipeline.py'], 'module_sha256': '6ac58e6c97da842f064e1c2933fbbdfc6a5529e07446e1d4a29436c84bb011fc', 'generator': 'build_notebook.py/2.1-swc', 'notebook_spec': '2.2'}, 'python': '3.12.12', 'torch': '2.14.0+cu130', 'transformers': '4.57.6', 'cuda': True}
+[colab] Executing cell 4/10 - t5_small_text2text-12...
+[colab] Executing cell 5/10 - Infrastructure: pin, stage and verify the model...
+{'model_id': 'google-t5/t5-small', 'revision': 'df1b051c49625cf57a3d0d8d3863ed4d13564fe4', 'license': 'apache-2.0', 'files': 7, 'total_bytes': 244236215}
+{'weights_dir': '/content/weights/t5-small', 'fetched': ['README.md', 'config.json', 'generation_config.json', 'model.safetensors', 'spiece.model', 'tokenizer.json', 'tokenizer_config.json']}
+{'verified_files': 7, 'revision': 'df1b051c49625cf57a3d0d8d3863ed4d13564fe4'}
+{'device': 'cuda:0', 'source': 'local-snapshot'}
+[colab] Executing cell 6/10 - t5_small_text2text-16...
+{'sample': 'synthetic_prefixed_inputs', 'sample_kind': 'synthetic (authored in this cell)', 'inputs': 2, 'references': False, 'text_sha256': '9d0d835eced4dfeef09ee825b326ee9621d7aba9a0324c49bbc47c316ffafebe', 'max_new_tokens': 64, 'num_beams': 1}
+input00: translate English to German: The house is wonderful.
+input01: summarize: The Colossal Clean Crawled Corpus, or C4, is a cleaned version of the April 2019 Common Crawl web s...
+[colab] Executing cell 7/10 - t5_small_text2text-18...
+{'MAX_TEXT_CHARS': 20000, 'MAX_INPUT_TOKENS': 512, 'MAX_NEW_TOKENS': 512, 'MAX_NUM_BEAMS': 8, 'DEFAULT_MAX_NEW_TOKENS': 64}
+{'decision_rule': 'greedy argmax per decoding step (num_beams=1); beam search when num_beams > 1; no sampling'}
+{'task_prefixes': ['summarize: ', 'translate English to German: ', 'translate English to French: ', 'translate English to Romanian: ']}
+{
+  "schema": {
+    "input": "one non-empty str that already carries its task prefix; the pipeline prepends none",
+    "text_chars": [
+      1,
+      20000
+    ],
+    "input_tokens": [
+      1,
+      512
+    ],
+    "max_new_tokens": [
+      1,
+      512
+    ],
+    "num_beams": [
+      1,
+      8
+    ],
+    "task_prefixes": [
+      "summarize: ",
+      "translate English to German: ",
+      "translate English to French: ",
+      "translate English to Romanian: "
+    ],
+    "decision_rule": "greedy argmax per decoding step (num_beams=1); beam search when num_beams > 1; no sampling",
+    "preprocessing": "SentencePiece encoding with no prefix added and no truncation: an input over MAX_INPUT_TOKENS is rejected with a ValueError naming the count, never cut"
+  },
+  "inputs": [
+    {
+      "id": "input00",
+      "chars": 52,
+      "known_prefix": "translate English to German: "
+    },
+    {
+      "id": "input01",
+      "chars": 536,
+      "known_prefix": "summarize: "
+    }
+  ],
+  "max_new_tokens": 64,
+  "num_beams": 1,
+  "verdict": "accepted",
+  "findings": [
+    {
+      "input": "num-beams-ceiling-probe",
+      "verdict": "rejected",
+      "message": "num_beams must be between 1 and 8, got 9"
+    }
+  ],
+  "model_id": "google-t5/t5-small",
+  "model_revision": "df1b051c49625cf57a3d0d8d3863ed4d13564fe4"
+}
+{'token_ceiling': 'enforced by generate() with the real tokenizer; reported as input_tokens'}
+[colab] Executing cell 8/10 - t5_small_text2text-20...
+input00 [translate English to German: ] 11 -> 5 tokens, stopped_by=eos, 4.66 s
+    Das Haus ist wunderbar.
+input01 [summarize: ] 127 -> 43 tokens, stopped_by=eos, 0.46 s
+    the c4 was prepared by keeping only lines that end in terminal punctuation. duplicate three-sentence spans were also removed so that boilerplate does not dominate the training signal.
+{'checks': {'one_result_per_input': True, 'generated_within_ceiling': True, 'input_within_ceiling': True, 'settings_echoed': True, 'every_default_input_has_known_prefix': True}, 'decision_rule': 'greedy argmax per decoding step (num_beams=1); beam search when num_beams > 1; no sampling', 'hit_token_ceiling': []}
+[colab] Executing cell 9/10 - t5_small_text2text-22...
+{'verdict': 'sample-sanity', 'items': 20, 't5_small': {'rouge1': 28.62, 'rouge2': 10.72, 'rougeL': 22.51}, 'lead_1': {'rouge1': 27.22, 'rouge2': 11.12, 'rougeL': 22.22}, 'stopped_by_max_new_tokens': 0}
+SJ1Xmf-Rb ROUGE-L 29.0: fearNet is a generative model that does not store previous examples. it uses a brain-inspired dual-memory system in which new memories are consolidated from a n
+S1xzyhR9Y7 ROUGE-L 13.6: multi-view learning can provide self-supervision when different views are available of the same data. the distributional hypothesis provides another form of use
+HJDUjKeA- ROUGE-L 32.3: we show how to perform reinforcement learning using object representation. we construct a differentiable mapping from an image to a discrete tabular list of obj
+{'inputs_verdict': 'not-measurable', 'inputs_reason': 'the evaluated sample has no reference outputs', 'inputs_metrics': []}
+[colab] Executing cell 10/10 - t5_small_text2text-24...
+['t5_small_text2text_evaluation_report.json', 't5_small_text2text_generations.csv', 't5_small_text2text_input_manifest.json', 't5_small_text2text_inputs_evaluation_report.json', 't5_small_text2text_reference_generations.csv', 't5_small_text2text_result.json']
+[colab] Saving notebook with outputs to '/home/kurt/colab-runs/t5-small-text2text-pipeline-77f629f-daab06/t5_small_text2text_colab_77f629f_colab-cli-t4_output.ipynb'...
