@@ -1,6 +1,6 @@
 """Static release-asset validation for the T5-Small text-to-text DIMER pipeline.
 
-Checks the STANDALONE tutorial notebook (DIMER Notebook Specification 2.0 §4), the tutorial
+Checks the STANDALONE tutorial notebook (DIMER Notebook Specification 2.2 §4), the tutorial
 registry, model card, README, STATUS.md and weight documentation for source conformance and
 cross-document identity consistency, and runs the generator parity checks (PAR1–PAR3).
 
@@ -34,6 +34,8 @@ BYOD_GATES = ("USE_BYOD",)
 EXPECTED_OUTPUTS = (
     "outputs/t5_small_text2text_input_manifest.json",
     "outputs/t5_small_text2text_evaluation_report.json",
+    "outputs/t5_small_text2text_inputs_evaluation_report.json",
+    "outputs/t5_small_text2text_reference_generations.csv",
     "outputs/t5_small_text2text_result.json",
     "outputs/t5_small_text2text_generations.csv",
 )
@@ -42,7 +44,12 @@ CODE_MARKERS = (
     "input_manifest = validate_inputs(texts, max_new_tokens=GEN_MAX_NEW_TOKENS, num_beams=NUM_BEAMS, names=item_ids)",
     "validate_inputs(texts, max_new_tokens=GEN_MAX_NEW_TOKENS, num_beams=MAX_NUM_BEAMS + 1)",
     "result = pipe.generate(text, max_new_tokens=GEN_MAX_NEW_TOKENS, num_beams=NUM_BEAMS)",
-    "report = evaluation_report(results[0], sample_kind=sample_kind)",
+    "reference_items = fetch_reference_sample()",
+    "report = evaluation_report(reference_results, [item['references'] for item in reference_items], sample_kind=REFERENCE_SAMPLE_NAME)",
+    "inputs_report = evaluation_report(results, references, sample_kind=sample_kind)",
+    "texts, references = read_byod_inputs(sample_name, sample_bytes)",
+    "BYOD_PATH = ''",
+    "if len(uploaded) != 1:",
     "ceilings = {'MAX_TEXT_CHARS': MAX_TEXT_CHARS, 'MAX_INPUT_TOKENS': MAX_INPUT_TOKENS, 'MAX_NEW_TOKENS': MAX_NEW_TOKENS, 'MAX_NUM_BEAMS': MAX_NUM_BEAMS, 'DEFAULT_MAX_NEW_TOKENS': DEFAULT_MAX_NEW_TOKENS}",
     "print({'decision_rule': DECISION_RULE})",
     "print({'task_prefixes': list(TASK_PREFIXES)})",
@@ -63,8 +70,14 @@ MARKDOWN_MARKERS = (
     "**the pipeline invents no prefix**",
     "**No adaptation occurs:**",
     "**no probability, confidence or score of any kind**",
-    "**no metric helper and reports no performance measure**",
-    "the verdict is always `not-measurable`",
+    "**ROUGE-1/2/L F1**",
+    "**Lead-1**",
+    "**What the number can and cannot show.**",
+    "**Predict before running:**",
+    "<summary>Check your reasoning</summary>",
+    "## How to use this notebook",
+    "<strong>Glossary</strong>",
+    "## Conclusion (your notes)",
     "**reference outputs**",
     "**rejects with a `ValueError` naming the count, never silently cuts**",
     "instruction following or chat, sampling-based decoding, batching",
@@ -85,10 +98,10 @@ FORBIDDEN_OUTSIDE_MODULE = (
 # ---------------------------------------------------------------------------
 # Shared checks. Everything below is source/structure validation only. Passing
 # these checks is NOT clean-runtime execution evidence under DIMER Notebook
-# Specification 2.0; see docs/release-verification.md for the release gate.
+# Specification 2.2; see docs/release-verification.md for the release gate.
 # ---------------------------------------------------------------------------
 
-NOTEBOOK_SPEC = "2.0"
+NOTEBOOK_SPEC = "2.2"
 ALLOWED_PROFILES = {"E2E", "ARTIFACT-INFERENCE", "TASK-INFERENCE", "MULTI-CAPABILITY", "SMOKE"}
 STATUS_TOKENS = ("Candidate", "Release-grade")
 PLACEHOLDER = re.compile(r"\b(TODO|TBD|FIXME)\b|Insert text here|Tooltip:", re.I)
@@ -125,10 +138,8 @@ REQUIRED_CARD_HEADINGS = [
 COMMON_CODE_MARKERS = (
     "PINS = [",
     "NOTEBOOK_SOURCE = {",
-    "SKIP_INSTALL = os.environ.get('DIMER_NOTEBOOK_CI_PREINSTALLED') == '1'",
-    "subprocess.run([sys.executable, '-m', 'pip', 'install', '-q', *PINS], check=True)",
-    "importlib.metadata.packages_distributions()",
-    "importlib.invalidate_caches()",
+    "LOCK_TEXT = r'" + "''",
+    "_ip.input_transformers_cleanup.append(_route_to_isolated_runtime)",
     "platform.python_version()",
     "torch.__version__",
     "MANIFEST = {",
@@ -533,17 +544,17 @@ def _validate_parity(path: Path, notebook: dict, code_cells: list[tuple[int, str
 
 
 def _validate_bootstrap_guard(path: Path, code_cells: list[tuple[int, str, ast.Module]]) -> None:
-    """The stale-import guard must actually raise: `if stale:` whose body raises RuntimeError."""
-    raises = False
-    for _, _, tree in code_cells:
-        for node in ast.walk(tree):
-            if isinstance(node, ast.If) and isinstance(node.test, ast.Name) and node.test.id == "stale":
-                for sub in ast.walk(node):
-                    if isinstance(sub, ast.Raise) and isinstance(sub.exc, ast.Call):
-                        func = sub.exc.func
-                        if isinstance(func, ast.Name) and func.id == "RuntimeError":
-                            raises = True
-    _check(raises, f"{path.name}: install cell must raise RuntimeError when already-imported packages change")
+    """T5S-M2 (RUN1, RUN10, ENV6): nothing is pip-installed into the kernel and no cell asks for a restart. Exactly two
+    kernel cells exist: the isolated install (pinned uv by digest, managed CPython, hash lock with --require-hashes
+    --only-binary :all:) and the router that sends every later cell to the isolated worker."""
+    kernel_raw = [source for _index, source, _tree in code_cells if "# dimer: kernel cell" in source]
+    _check(len(kernel_raw) == 2, f"{path.name}: exactly two kernel cells (isolated install and router) are expected (T5S-M2)")
+    install = next((k for k in kernel_raw if "LOCK_TEXT = r" in k), "")
+    for needed in ('"--managed-python"', '"--require-hashes"', '"--only-binary"', '":all:"', "UV_SHA256", "LOCK_SHA256", 'platform.machine() != "x86_64"'):
+        _check(needed in install, f"{path.name}: the isolated install cell must use {needed} (T5S-M2)")
+    every = "\n".join(source for _index, source, _tree in code_cells)
+    _check("Restart the runtime" not in every, f"{path.name}: no cell may ask for a runtime restart (T5S-M2)")
+    _check("[sys.executable, '-m', 'pip'" not in every, f"{path.name}: nothing may be pip-installed into the kernel (T5S-M2)")
 
 
 def _validate_notebook_content(

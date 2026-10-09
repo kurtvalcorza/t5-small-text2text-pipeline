@@ -3,7 +3,7 @@
 `tutorials/t5_small_text2text_colab.ipynb` (`TASK-INFERENCE`) is a **release candidate** until
 the exact notebook revision has executed top-to-bottom in a clean supported runtime. Unit tests,
 JSON validation, code-cell compilation, and `tools/validate_release_assets.py` are necessary
-checks but are **not** runtime evidence under DIMER Notebook Specification 1.1. This file is
+checks but are **not** runtime evidence under DIMER Notebook Specification 2.2 (the notebook declares 2.2 since the 2026-10-05 review fixes; earlier revisions declared 2.0). This file is
 the durable release-gate record for the notebook.
 
 ## Automatic coverage (static, every pull request)
@@ -14,20 +14,19 @@ CI runs `tools/validate_release_assets.py`, which checks:
   persisted outputs or execution counts; no unresolved placeholder markers; every code cell
   is preceded by an explanatory markdown cell;
 - exactly one tutorial notebook, named in `tutorials/README.md` with its `TASK-INFERENCE`
-  profile, the notebook-spec version and the standalone carrier; `metadata.dimer` declares that profile, spec `1.1`,
+  profile, the notebook-spec version and the standalone carrier; `metadata.dimer` declares that profile, spec `2.2`,
   `standalone: true` and `generated_from` (repository, revision, module SHA-256, generator);
 - the standalone carrier (ST1–ST6, PAR1–PAR3): no clone, repository install or repository import on the primary
   path; exactly one cell tagged `embedded_module` equal to `src/t5_small_text2text_pipeline/pipeline.py` after the generator's documented
   rewrites; the inline `MANIFEST` equal to the committed 7-entry snapshot manifest and the inline `PINS` equal to
-  the `pyproject.toml` runtime pins; the notebook byte-identical to `tools/build_notebook.py` output; the pinned-install
-  cell with its restart-on-stale-import guard; `NOTEBOOK_SOURCE` recorded in exports;
+  the `pyproject.toml` runtime pins; the notebook byte-identical to `tools/build_notebook.py` output; exactly two kernel cells (the isolated `uv` install — pinned `uv` wheel by digest, managed CPython, the carried hash lock `tutorials/requirements-colab.lock.txt` with `--require-hashes --only-binary :all:` — and the router), no kernel `pip` and no restart instruction; `NOTEBOOK_SOURCE` recorded in exports;
 - `MODEL_ID`/`MODEL_REVISION` are bound only in the carried module cell (and repeated in the inline manifest, which the
   notebook asserts against the module before fetching), the revision is
   a 40-hex immutable commit, and the same identity string appears in `README.md`,
   `MODEL_CARD.md`, and `docs/WEIGHTS.md` with no stray revisions;
 - the profile-specific public-API calls (`stage_missing_files`, `verify_snapshot`,
   `T5SmallText2TextPipeline.from_pretrained(weights_dir=...)`, `validate_inputs`, `generate(text, max_new_tokens=..., num_beams=...)`, `evaluation_report`), the ceiling print
-  (`MAX_TEXT_CHARS`, `MAX_INPUT_TOKENS`, `MAX_NEW_TOKENS`, `MAX_NUM_BEAMS`, `DEFAULT_MAX_NEW_TOKENS`, `DECISION_RULE`, `TASK_PREFIXES`), the exports, the learner-facing statements (original T5 not FLAN, the pipeline invents no prefix, greedy argmax as the default decision rule, no probability or score emitted, no metric helper and the verdict always `not-measurable`, inputs above the token ceiling rejected not truncated, named exclusions) and the
+  (`MAX_TEXT_CHARS`, `MAX_INPUT_TOKENS`, `MAX_NEW_TOKENS`, `MAX_NUM_BEAMS`, `DEFAULT_MAX_NEW_TOKENS`, `DECISION_RULE`, `TASK_PREFIXES`), the exports, the learner-facing statements (original T5 not FLAN, the pipeline invents no prefix, greedy argmax as the default decision rule, no probability or score emitted, ROUGE-1/2/L beside the Lead-1 baseline on the pinned referenced sample, the guided-layer markers, inputs above the token ceiling rejected not truncated, named exclusions) and the
   gated-off BYOD default listed in the validator; forbidden patterns (credential-in-URL, any `git clone` /
   `github.com` / repository import on the primary path, a mutable `revision='main'`, direct
   `from transformers import` / `T5ForConditionalGeneration` / `T5TokenizerFast` / `from huggingface_hub import` /
@@ -57,13 +56,13 @@ Before changing the registry status from `Candidate` to `Release-grade`:
 1. resolve the exact PR/commit head under review and confirm static CI is green;
 2. open that exact notebook revision in a new CPU (or CUDA) runtime (Colab, or the Kaggle
    executor above) with **no repository checkout** and a clean model cache;
-3. run the notebook top-to-bottom without editing implementation cells (form parameters at their
-   defaults for the sample path: `USE_BYOD = False`, `GEN_MAX_NEW_TOKENS = 64`, `NUM_BEAMS = 1`);
+3. run the notebook top-to-bottom once, with **no runtime restart**, without editing implementation cells (form parameters at their
+   defaults for the sample path: `USE_BYOD = False`, `BYOD_PATH = ''`, `GEN_MAX_NEW_TOKENS = 64`, `NUM_BEAMS = 1`), and record `restarted: false`;
 4. verify that Section 1 reports `NOTEBOOK_SOURCE.repository_revision` equal to the revision recorded in
    `metadata.dimer.generated_from` and that the installed core package versions equal the inline `PINS`
    (= `pyproject.toml`);
 5. verify every default-path stage completes:
-   - pinned runtime installed from the inline `PINS` with no GitHub access;
+   - the isolated environment built from the carried hash lock (Section 1 prints the isolated Python 3.12.12 and the kernel's), with no GitHub access;
    - the carried module cell executing (defining `T5SmallText2TextPipeline`, `validate_inputs`, `evaluation_report` and the ceilings) with no import of the repository package;
    - the two synthetic prefixed inputs authored in code with their text SHA-256 printed, and the ceilings (`MAX_TEXT_CHARS` 20000, `MAX_INPUT_TOKENS` 512, `MAX_NEW_TOKENS` 512, `MAX_NUM_BEAMS` 8, `DEFAULT_MAX_NEW_TOKENS` 64), `DECISION_RULE` and the four `TASK_PREFIXES` surfaced, and `validate_inputs` writing `outputs/t5_small_text2text_input_manifest.json` (verdict `accepted`, both inputs recognised by a known prefix, one recorded rejection finding from the `num_beams` ceiling probe);
    - pinned `google-t5/t5-small` acquisition at the immutable revision through the carried module, the inline `MANIFEST` asserted against the module identity and written to `weights/t5-small/`:
@@ -71,9 +70,9 @@ Before changing the registry status from `Candidate` to `Release-grade`:
      clean runtime, `verify_snapshot` returns its dict (7 files), and `from_pretrained(weights_dir=WEIGHTS_DIR)`
      loads from the verified directory with `source` `local-snapshot`;
    - `generate` returning, per input, `text`, `input_tokens`, `generated_tokens`, `stopped_by`, `known_prefix` and the echoed `generation` settings, with every sanity check `True`; record the two outputs, token counts and `stopped_by` values (the card-pass CPU smoke returned `Das Haus ist wunderbar.` for the translation, 11 → 5 tokens stopped by `eos`; a different output on another runtime is a finding to record, not a failure by itself, because no metric is asserted);
-   - `evaluation_report` writing `outputs/t5_small_text2text_evaluation_report.json` with verdict `not-measurable` and an empty
-     `metrics` list, and the "No metric is reported" line printed;
-   - `outputs/t5_small_text2text_result.json` and `outputs/t5_small_text2text_generations.csv` written with `NOTEBOOK_SOURCE`, model revision,
+   - `fetch_reference_sample()` accepting the pinned SciTLDR-A file (1,204,107 bytes, SHA-256 `fb42dd6c…`) and returning 20 items; `evaluation_report` writing `outputs/t5_small_text2text_evaluation_report.json` with verdict `sample-sanity`, three ROUGE metrics and the Lead-1 baseline (27.22 / 11.12 / 22.22); record the three model scores and the count of outputs stopped by `max_new_tokens`;
+   - `outputs/t5_small_text2text_inputs_evaluation_report.json` with verdict `not-measurable` for the authored inputs;
+   - `outputs/t5_small_text2text_result.json`, `outputs/t5_small_text2text_generations.csv` and `outputs/t5_small_text2text_reference_generations.csv` written with `NOTEBOOK_SOURCE`, model revision,
      model licence, runtime versions and device;
 6. verify the exports exist and the interpretation section matches the observed path;
 7. record the notebook Git blob id, commit, runtime (platform, Python, PyTorch, Transformers, device),
@@ -94,22 +93,11 @@ they are measurements for the stated runtime, not general estimates.
 
 | Date (UTC) | Commit / notebook blob | Executor | Path exercised | Wall | Outcome |
 |---|---|---|---|---|---|
-| 2026-09-14 | `e77fa79` / `caf0327ec98f` | Kaggle CPU (`kurtvalcorza/dimer-nb2-t5-small-text2text` v1) | Default sample path | 215.2 s | **PASSED** — 8/8 ok code cells executed cleanly, 16 files, 244 MB staged |
+| 2026-09-14 | `e77fa79` / `caf0327ec98f` | Kaggle CPU (`kurtvalcorza/dimer-nb2-t5-small-text2text` v1) | Default sample path | 215.2 s | **PASSED** — 8/8 ok code cells executed cleanly, 16 files, 244 MB staged. Not recorded: restart status, runtime versions, the generated outputs. This was the earlier notebook (kernel `pip` install with a restart guard, no referenced sample, spec 2.0). |
+| 2026-10-09 | `77f629f` / `7cdec4b16f48` | Colab CLI 0.7.4 sequential execution, fresh Colab Tesla T4 (session `suite-t5-77f629f-daab`) — not a browser Run all | Default sample path (`USE_BYOD = False`, `GEN_MAX_NEW_TOKENS = 64`, `NUM_BEAMS = 1`) | 112.2 s | **PASSED** — 10/10 code cells in order, 0 error outputs, `restarted: false` (no output asks for a restart; the carried-module cell is silent by design). Isolated env: 48 locked packages, CPython 3.12.12 (kernel 3.13.15), setup 65 s; torch 2.14.0+cu130, transformers 4.57.6, `cuda:0`, model `google-t5/t5-small` @ `df1b051c4962` staged clean (7 files, 244,236,215 bytes, `source` `local-snapshot`). Authored inputs: En→De `Das Haus ist wunderbar.` (11 → 5 tokens, `eos`); summary 127 → 43 tokens, `eos`; input manifest `accepted` with the `num_beams` probe rejected. SciTLDR-A 20 items: ROUGE-1/2/L 28.62 / 10.72 / 22.51 vs Lead-1 27.22 / 11.12 / 22.22, verdict `sample-sanity`, 0 stopped by `max_new_tokens`; authored inputs `not-measurable`; six exports written. Evidence: `docs/execution-evidence/2026-10-09-77f629f/` (executed notebook SHA-256 `766adec5050d…`). Not exercised: REL12 BYOD, the `NUM_BEAMS = 4` activity. |
 
 ## Current status
 
-No clean-runtime execution of the notebook has been recorded yet; the run is **pending** and queued
-to the GPU lane. Static validation (`tools/validate_release_assets.py`), nbformat validation, a
-`compile()` sweep over every code cell, and the offline unit suite passed on the tutorial source at
-the candidate revision, which is necessary but not sufficient. The registry status remains
-**Candidate** until a reviewer confirms a recorded run against the notebook blob under review and
-an integrator promotes it; promotion is not performed by the builder. Facts a reviewer should weigh:
-`stage_missing_files` was exercised only with an injected downloader in the unit suite (the real
-`hf_hub_download` fetch into the snapshot directory has not been executed), and the card pass executed `generate` only on CPU in the Windows venv from a complete local snapshot (returns/L6: CUDA path and Hub path not executed), so the clean run will be the first real execution of the staging path; the CPU inference path against real weights was executed once locally (card Runtime: 3.89 s load + verify, 0.16 s translation, 0.31 s summarisation).
+One clean-room run is recorded (the row above): the earlier notebook blob `caf0327ec98f` ran its default path on a Kaggle CPU kernel, which executed the standalone carrier — the carried module cell, the real `stage_missing_files` fetch of `model.safetensors` from the Hub, `verify_snapshot` and CPU generation — end to end without the repository. That run did not record its restart status, runtime versions or outputs.
 
-**The standalone carrier itself — executing the carried module cell in a runtime that has no repository
-checkout — has been validated statically only (parity PASS) and never run end-to-end.** A carrier probe
-did exec the install, carried-module and identity-assert cells in a fresh interpreter with the repository
-package blocked on `sys.meta_path`, which confirms the cells define the public API without the package;
-it fetched nothing and loaded no model. The clean run will therefore be the first execution of the
-standalone path.
+The 2026-10-05 review fixes (`docs/reviews/2026-10-05-notebook-review/t5_small_text2text_colab_Fixes.md`) changed the notebook: an isolated, hash-locked `uv` environment replaces the in-kernel install, the default path now measures on a pinned referenced sample, BYOD accepts a path and references, and the guided layer was added. The regenerated notebook was then run on a hosted runtime: the review-fix blob `7cdec4b16f48` (commit `77f629f`; isolated `uv` environment, referenced SciTLDR-A sample, guided layer, T5S-M1..M3 / T5S-m1..m2 fixes) completed one pass with no restart and 0 errors on a fresh Colab Tesla T4 on 2026-10-09 (Colab CLI 0.7.4 sequential execution, 10/10 code cells, 112.2 s; isolated Python 3.12.12, torch 2.14.0+cu130, transformers 4.57.6, `cuda:0`; ROUGE-1/2/L 28.62 / 10.72 / 22.51 beside Lead-1 27.22 / 11.12 / 22.22 on the 20-item sample, verdict `sample-sanity`, 0 outputs stopped by `max_new_tokens`). That run used the CUDA path; the CPU path of the regenerated notebook has not been hosted-run. REL12 BYOD exercise (path-based and upload, `.txt` and `.csv` with references, a refused Latin-1 file) and the optional `NUM_BEAMS = 4` activity are pending on a hosted runtime, so the status stays Candidate (REL14). Promotion is not performed by the builder. `STATUS.md` now cites Notebook Specification 2.2.

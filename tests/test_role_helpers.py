@@ -87,7 +87,7 @@ def test_validate_inputs_rejects_like_generate() -> None:
         validate_inputs([TRANSLATE], names=["a", "b"])
 
 
-def test_evaluation_report_is_always_not_measurable() -> None:
+def test_evaluation_report_is_not_measurable_without_references() -> None:
     report = evaluation_report(_result())
     assert report["verdict"] == "not-measurable"
     assert report["metrics"] == []
@@ -95,17 +95,22 @@ def test_evaluation_report_is_always_not_measurable() -> None:
     assert report["n_generated_tokens"] == 7
     assert report["sample_kind"] == "synthetic"
     assert "no reference outputs" in report["reason"]
-    assert "ROUGE-1/2/L or BLEU/chrF" in report["needs"]
+    assert "ROUGE-1/2/L" in report["needs"]
     assert DECISION_RULE in report["score_semantics"]
     assert (report["model_id"], report["model_revision"]) == (MODEL_ID, MODEL_REVISION)
 
 
-def test_evaluation_report_stays_not_measurable_when_references_are_supplied() -> None:
+def test_evaluation_report_measures_when_references_are_supplied() -> None:
+    # T5S-M1: references are scored (ROUGE beside the copy-source baseline), not merely recorded.
     report = evaluation_report(
-        _result(12, num_beams=4), ["Das Haus ist wunderbar."], sample_kind="BYOD upload"
+        {**_result(12, num_beams=4), "input": TRANSLATE},
+        ["Das Haus ist wunderbar."],
+        sample_kind="BYOD upload",
     )
-    assert report["verdict"] == "not-measurable"
-    assert report["metrics"] == []
+    assert report["verdict"] == "sample-sanity"
+    scores = {m["metric"]: m["value"] for m in report["metrics"]}
+    assert scores == {"rouge1": 100.0, "rouge2": 100.0, "rougeL": 100.0}
+    assert report["baselines"][0]["kinds"] == ["copy-source (the untranslated input as the output)"]
     assert report["sample_kind"] == "BYOD upload"
     assert report["n_generated_tokens"] == 12
-    assert "one reference is not a dispersion" in report["reason"]
+    assert "one item cannot state a dispersion" in report["reason"]
