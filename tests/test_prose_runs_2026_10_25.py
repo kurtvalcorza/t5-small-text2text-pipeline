@@ -18,10 +18,21 @@ def _markdown():
 
 def test_timings_are_approximate_and_name_the_runtime():
     md = _markdown()
-    for exact in ("112.2 s", "96.3 s", "215.2 s"):
-        assert exact not in md, exact
-    assert md.count("about 2 minutes") >= 2 and "on a Colab T4" in md
-    assert "`e82d281c` on 2026-10-25" in md
+    # Historical wording (2026-10-26): exact recorded times are allowed again, each labelled with its run.
+    assert "215.2 s" not in md
+    assert md.count("112.2 s") >= 2 and "on a Colab T4" in md
+    assert "96.3 s (`e82d281c`, 2026-10-25)" in md
+
+
+def test_historical_wording_records_every_hosted_run():
+    # Historical wording (2026-10-26): timings and quoted scores name every recorded hosted run; no run-status
+    # sentence. Fails on PR #8 head cb54454.
+    md = _markdown()
+    for gone in ("about 2 minutes", "has not been hosted-run", "not re-run here", "the hosted run printed"):
+        assert gone not in md, gone
+    for quoted in ("107.9 s (`622b9ef3`, 2026-10-25)", "`622b9ef3` (commit `524353b`, both 2026-10-25)",
+                   "your run may take a different time"):
+        assert quoted in md, quoted
 
 
 def test_release_record_states_the_declared_spec():

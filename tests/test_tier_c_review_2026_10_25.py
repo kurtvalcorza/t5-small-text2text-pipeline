@@ -26,7 +26,7 @@ def test_t90_2_no_stale_no_run_claims():
     for stale in ("no run of this revision is recorded yet", "No run of this revision has been recorded yet",
                   "has not been timed yet"):
         assert stale not in md, stale
-    assert "`7cdec4b1`" in md and "about 2 minutes" in md
+    assert "`7cdec4b1`" in md and "112.2 s" in md
 
 
 def test_t90_3_spec_items():

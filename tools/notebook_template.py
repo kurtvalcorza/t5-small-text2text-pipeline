@@ -37,8 +37,8 @@ TEMPLATE = {
         "referenced sample — 20 SciTLDR-A abstracts with their human-written one-sentence summaries — with ROUGE-1/2/L beside "
         "the Lead-1 baseline, writes the evaluation reports, and exports machine-readable outputs with provenance. No "
         "repository clone, DIMER worker or service, credential, upload dialog, configuration edit or runtime restart is "
-        "required (NOTEBOOK_SPEC 2.5 §5). Hosted runs are recorded per notebook blob in `docs/release-verification.md`; on a Colab T4 the default path takes about 2 minutes end to end "
-        "(the one-pass hosted runs of blobs `7cdec4b1` on 2026-10-09 and `e82d281c` on 2026-10-25); a Kaggle CPU run of an earlier notebook took about 4 minutes (2026-09-14, CPU only)."
+        "required (NOTEBOOK_SPEC 2.5 §5). Hosted runs are recorded per notebook blob in `docs/release-verification.md`; on a Colab T4 the one-pass hosted runs of the default path took "
+        "112.2 s (blob `7cdec4b1`, 2026-10-09), 96.3 s (`e82d281c`, 2026-10-25) and 107.9 s (`622b9ef3`, 2026-10-25) end to end, and your run may take a different time; a Kaggle CPU run of an earlier notebook took about 4 minutes (2026-09-14, CPU only)."
     ),
     "byod": (
         "Optional and off by default: set `USE_BYOD = True` in Section 4 and either give a file path in `BYOD_PATH` or "
@@ -136,8 +136,8 @@ TEMPLATE = {
             "**Predict, then check.** Before each principal result a **Predict before running** prompt asks you to commit to an "
             "expectation; after it, **What to notice** describes normal output and a collapsed **Check your reasoning** block "
             "gives a worked answer. Write your own answer first, then open it. Where an answer quotes a score, it names "
-            "its source: the Colab T4 run of the previous blob (`7cdec4b1`, commit `77f629f`, 2026-10-09; not re-run here), or, for the Lead-1 baseline, "
-            "the pinned referenced sample, which needs no model (the hosted run printed the same 27.22 / 11.12 / 22.22)."
+            "its source: the Colab T4 runs of blobs `7cdec4b1` (commit `77f629f`, 2026-10-09), `e82d281c` (commit `a353e77`) and `622b9ef3` (commit `524353b`, both 2026-10-25), which printed the same scores, or, for the Lead-1 baseline, "
+            "the pinned referenced sample, which needs no model (the hosted runs printed the same 27.22 / 11.12 / 22.22)."
         ),
         (
             "## The task: Input → Model/System → Output\n\n"
@@ -188,7 +188,7 @@ TEMPLATE = {
         "multi-task-trained on supervised tasks including CNN/Daily Mail summarisation (model card, [1]). The 20 SciTLDR-A "
         "abstracts [2] come from public OpenReview and arXiv papers, so some may be in C4. This is inferred, not verified "
         "(C4 was not searched); the scores are tutorial evidence on possibly-seen text.",
-        "- **Runtime:** a fresh **Linux x86_64** runtime (Google Colab, Kaggle or Linux Jupyter); a CPU is enough and CUDA is used automatically when present (float32 either way). The kernel's own Python version does not matter: Section 1 builds a separate environment with CPython 3.12.12 from the hash-locked pins and every later cell runs there. The lock carries the Linux build of `torch==2.14.0` with its CUDA libraries, which is the largest download of the run (several GB of disk; not measured for this notebook). Timing: the earlier, kernel-install version of this notebook ran on a Kaggle CPU in about 4 minutes end to end (14 September 2026, CPU only); this version, with the isolated-environment build and the 20 referenced generations, takes about 2 minutes on a Colab T4 (the hosted runs of blobs `7cdec4b1` on 2026-10-09 and `e82d281c` on 2026-10-25; CUDA path); its CPU path has not been hosted-run. For scale, the repository's model card records, for a Windows-venv smoke on an Intel Core Ultra 9 275HX, 3.89 s to load and digest-verify the 244 MB snapshot, 0.16 s for the 11-token translation and 0.31 s for a 94-token `summarize: ` input that generated 48 tokens (a development machine, not a hosted runtime).",
+        "- **Runtime:** a fresh **Linux x86_64** runtime (Google Colab, Kaggle or Linux Jupyter); a CPU is enough and CUDA is used automatically when present (float32 either way). The kernel's own Python version does not matter: Section 1 builds a separate environment with CPython 3.12.12 from the hash-locked pins and every later cell runs there. The lock carries the Linux build of `torch==2.14.0` with its CUDA libraries, which is the largest download of the run (several GB of disk; not measured for this notebook). Timing: the earlier, kernel-install version of this notebook ran on a Kaggle CPU in about 4 minutes end to end (14 September 2026, CPU only); this version, with the isolated-environment build and the 20 referenced generations, took 112.2 s, 96.3 s and 107.9 s on a Colab T4 in the hosted runs of blobs `7cdec4b1` (2026-10-09), `e82d281c` and `622b9ef3` (2026-10-25) (CUDA path); your run may take a different time. For scale, the repository's model card records, for a Windows-venv smoke on an Intel Core Ultra 9 275HX, 3.89 s to load and digest-verify the 244 MB snapshot, 0.16 s for the 11-token translation and 0.31 s for a 94-token `summarize: ` input that generated 48 tokens (a development machine, not a hosted runtime).",
         "- **Knowledge:** basic Python; what an encoder-decoder (seq2seq) model is; what greedy decoding and beam search do; why a generated sentence can be fluent and wrong. The glossary above covers the rest.",
         "- **Data:** two inputs **authored in code** (one translation sentence, one four-sentence passage to summarise), which have no reference outputs, and a **referenced sample** for measurement: the first 20 abstracts of 200–1600 characters from the SciTLDR-A test file (Cachola et al. 2020, Apache-2.0), downloaded once (1.2 MB) from a pinned commit and refused unless its size and SHA-256 match; each abstract has two to four human-written one-sentence summaries. Optional BYOD is off by default; a `.txt` file holds one prefixed input per line, a `.csv` file has `input` and optionally `reference` columns. Do not upload confidential or restricted data to a hosted notebook environment unless you are authorized to do so. Uploaded text remains in the notebook runtime; this pipeline does not send it to a third-party inference API.",
         "- **Credentials:** none. The pinned model and the referenced sample are public.",
@@ -423,7 +423,7 @@ TEMPLATE = {
                 "Lead-1 is a strong baseline on abstracts because the first sentence often names the topic, and the "
                 "references are single sentences, so a long, copied T5-small output pays a precision penalty. If T5-small "
                 "lands below Lead-1, the model adds nothing over a one-line rule on this text, which is plausible for a "
-                "small model summarising outside its supervised task's domain; if it lands above (in the Colab T4 run of the previous blob (`7cdec4b1`, commit `77f629f`, 2026-10-09; not re-run here), ROUGE-1 28.62 against Lead-1's 27.22), "
+                "small model summarising outside its supervised task's domain; if it lands above (in the three recorded Colab T4 runs of blobs `7cdec4b1`, `e82d281c` and `622b9ef3`, ROUGE-1 28.62 against Lead-1's 27.22), "
                 "remember that some of these abstracts may be in its C4 pre-training text, the margin on 20 items is still "
                 "too small to generalise from. Read the three examples: a high ROUGE-L with a wrong claim, or a low one "
                 "with a fair paraphrase, shows what overlap scores cannot see. Outputs listed under "
