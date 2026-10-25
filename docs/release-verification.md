@@ -3,7 +3,7 @@
 `tutorials/t5_small_text2text_colab.ipynb` (`TASK-INFERENCE`) is a **release candidate** until
 the exact notebook revision has executed top-to-bottom in a clean supported runtime. Unit tests,
 JSON validation, code-cell compilation, and `tools/validate_release_assets.py` are necessary
-checks but are **not** runtime evidence under DIMER Notebook Specification 2.2 (the notebook declares 2.2 since the 2026-10-05 review fixes; earlier revisions declared 2.0). This file is
+checks but are **not** runtime evidence under DIMER Notebook Specification 2.5 (the notebook declares 2.2 since the 2026-10-05 review fixes; earlier revisions declared 2.0). This file is
 the durable release-gate record for the notebook.
 
 ## Automatic coverage (static, every pull request)
