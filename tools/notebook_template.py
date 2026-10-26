@@ -1,4 +1,4 @@
-"""Per-repository template for tools/build_notebook.py (NOTEBOOK_SPEC 2.2 §4 standalone carrier).
+"""Per-repository template for tools/build_notebook.py (NOTEBOOK_SPEC 2.5 §4 standalone carrier).
 
 Only the task-specific prose and stage cells live here. Runtime install, the embedded pipeline
 module, and the model pin/stage/verify cells are produced by the generator from repository
@@ -37,8 +37,8 @@ TEMPLATE = {
         "referenced sample — 20 SciTLDR-A abstracts with their human-written one-sentence summaries — with ROUGE-1/2/L beside "
         "the Lead-1 baseline, writes the evaluation reports, and exports machine-readable outputs with provenance. No "
         "repository clone, DIMER worker or service, credential, upload dialog, configuration edit or runtime restart is "
-        "required (NOTEBOOK_SPEC 2.2 §5). The one recorded run (Kaggle CPU, 14 September 2026, 215.2 s) was of the earlier "
-        "notebook, which installed into the kernel and had no referenced sample; no run of this revision is recorded yet."
+        "required (NOTEBOOK_SPEC 2.5 §5). Hosted runs are recorded per notebook blob in `docs/release-verification.md`; on a Colab T4 the one-pass hosted runs of the default path took "
+        "112.2 s (blob `7cdec4b1`, 2026-10-09), 96.3 s (`e82d281c`, 2026-10-25) and 107.9 s (`622b9ef3`, 2026-10-25) end to end, and your run may take a different time; a Kaggle CPU run of an earlier notebook took about 4 minutes (2026-09-14, CPU only)."
     ),
     "byod": (
         "Optional and off by default: set `USE_BYOD = True` in Section 4 and either give a file path in `BYOD_PATH` or "
@@ -135,9 +135,9 @@ TEMPLATE = {
             "packaging.\n\n"
             "**Predict, then check.** Before each principal result a **Predict before running** prompt asks you to commit to an "
             "expectation; after it, **What to notice** describes normal output and a collapsed **Check your reasoning** block "
-            "gives a worked answer. Write your own answer first, then open it. No run of this revision has been recorded yet, so "
-            "the answers describe the shape of a normal result; the one score they quote — the Lead-1 baseline — was computed "
-            "offline on the pinned referenced sample, which needs no model."
+            "gives a worked answer. Write your own answer first, then open it. Where an answer quotes a score, it names "
+            "its source: the Colab T4 runs of blobs `7cdec4b1` (commit `77f629f`, 2026-10-09), `e82d281c` (commit `a353e77`) and `622b9ef3` (commit `524353b`, both 2026-10-25), which printed the same scores, or, for the Lead-1 baseline, "
+            "the pinned referenced sample, which needs no model (the hosted runs printed the same 27.22 / 11.12 / 22.22)."
         ),
         (
             "## The task: Input → Model/System → Output\n\n"
@@ -184,7 +184,11 @@ TEMPLATE = {
         ),
     ],
     "prerequisites": [
-        "- **Runtime:** a fresh **Linux x86_64** runtime (Google Colab, Kaggle or Linux Jupyter); a CPU is enough and CUDA is used automatically when present (float32 either way). The kernel's own Python version does not matter: Section 1 builds a separate environment with CPython 3.12.12 from the hash-locked pins and every later cell runs there. The lock carries the Linux build of `torch==2.14.0` with its CUDA libraries, which is the largest download of the run (several GB of disk; not measured for this notebook). Timing: the earlier, kernel-install version of this notebook ran on a Kaggle CPU in 215.2 s end to end (14 September 2026); this version adds the isolated-environment build and 20 more generations, and has not been timed yet. For scale, the repository's model card records, for a Windows-venv smoke on an Intel Core Ultra 9 275HX, 3.89 s to load and digest-verify the 244 MB snapshot, 0.16 s for the 11-token translation and 0.31 s for a 94-token `summarize: ` input that generated 48 tokens (a development machine, not a hosted runtime).",
+        "- **Overlap with the training data:** T5 was pre-trained on C4, a cleaned April 2019 Common Crawl snapshot, and "
+        "multi-task-trained on supervised tasks including CNN/Daily Mail summarisation (model card, [1]). The 20 SciTLDR-A "
+        "abstracts [2] come from public OpenReview and arXiv papers, so some may be in C4. This is inferred, not verified "
+        "(C4 was not searched); the scores are tutorial evidence on possibly-seen text.",
+        "- **Runtime:** a fresh **Linux x86_64** runtime (Google Colab, Kaggle or Linux Jupyter); a CPU is enough and CUDA is used automatically when present (float32 either way). The kernel's own Python version does not matter: Section 1 builds a separate environment with CPython 3.12.12 from the hash-locked pins and every later cell runs there. The lock carries the Linux build of `torch==2.14.0` with its CUDA libraries, which is the largest download of the run (several GB of disk; not measured for this notebook). Timing: the earlier, kernel-install version of this notebook ran on a Kaggle CPU in about 4 minutes end to end (14 September 2026, CPU only); this version, with the isolated-environment build and the 20 referenced generations, took 112.2 s, 96.3 s and 107.9 s on a Colab T4 in the hosted runs of blobs `7cdec4b1` (2026-10-09), `e82d281c` and `622b9ef3` (2026-10-25) (CUDA path); your run may take a different time. For scale, the repository's model card records, for a Windows-venv smoke on an Intel Core Ultra 9 275HX, 3.89 s to load and digest-verify the 244 MB snapshot, 0.16 s for the 11-token translation and 0.31 s for a 94-token `summarize: ` input that generated 48 tokens (a development machine, not a hosted runtime).",
         "- **Knowledge:** basic Python; what an encoder-decoder (seq2seq) model is; what greedy decoding and beam search do; why a generated sentence can be fluent and wrong. The glossary above covers the rest.",
         "- **Data:** two inputs **authored in code** (one translation sentence, one four-sentence passage to summarise), which have no reference outputs, and a **referenced sample** for measurement: the first 20 abstracts of 200–1600 characters from the SciTLDR-A test file (Cachola et al. 2020, Apache-2.0), downloaded once (1.2 MB) from a pinned commit and refused unless its size and SHA-256 match; each abstract has two to four human-written one-sentence summaries. Optional BYOD is off by default; a `.txt` file holds one prefixed input per line, a `.csv` file has `input` and optionally `reference` columns. Do not upload confidential or restricted data to a hosted notebook environment unless you are authorized to do so. Uploaded text remains in the notebook runtime; this pipeline does not send it to a third-party inference API.",
         "- **Credentials:** none. The pinned model and the referenced sample are public.",
@@ -379,8 +383,10 @@ TEMPLATE = {
                 "**What the number can and cannot show.** ROUGE counts shared words with a human summary; a fluent summary "
                 "that states a wrong fact can score well, and a correct paraphrase can score poorly. Twenty abstracts give "
                 "tutorial evidence about this model on this kind of text, not a benchmark result and not a dispersion "
-                "estimate. T5-small was trained to summarise news articles, not scientific abstracts, so this sample is "
-                "out of its training domain. The scorer follows `rouge-score` without stemming (lower-cased runs of letters "
+                "estimate. T5-small's supervised summarisation task was news (CNN/Daily Mail), not scientific abstracts, but its pre-training "
+                "corpus C4 is a web crawl (April 2019) in which public OpenReview and arXiv abstracts may appear: the overlap "
+                "is inferred, not verified (C4 was not searched), so this sample is outside the supervised task's domain, not "
+                "necessarily unseen text. The scorer follows `rouge-score` without stemming (lower-cased runs of letters "
                 "and digits), so its numbers are close to, not identical with, published ROUGE figures; the upstream "
                 "per-task figures in the paper's Table 14 are upstream claims, not measured here.\n\n"
                 "**Predict before running:** will T5-small's ROUGE-1 on the 20 abstracts be above or below the Lead-1 "
@@ -417,7 +423,8 @@ TEMPLATE = {
                 "Lead-1 is a strong baseline on abstracts because the first sentence often names the topic, and the "
                 "references are single sentences, so a long, copied T5-small output pays a precision penalty. If T5-small "
                 "lands below Lead-1, the model adds nothing over a one-line rule on this text, which is plausible for a "
-                "small model summarising outside its training domain; if it lands above, the margin on 20 items is still "
+                "small model summarising outside its supervised task's domain; if it lands above (in the three recorded Colab T4 runs of blobs `7cdec4b1`, `e82d281c` and `622b9ef3`, ROUGE-1 28.62 against Lead-1's 27.22), "
+                "remember that some of these abstracts may be in its C4 pre-training text, the margin on 20 items is still "
                 "too small to generalise from. Read the three examples: a high ROUGE-L with a wrong claim, or a low one "
                 "with a fair paraphrase, shows what overlap scores cannot see. Outputs listed under "
                 "`outputs_stopped_by_max_new_tokens` were cut off and score lower than they would finished.</details>\n\n"
@@ -531,6 +538,7 @@ TEMPLATE = {
         "|---|---|---|\n"
         "| Section 1 stops with `This notebook needs a Linux x86_64 runtime` | a local Windows or macOS kernel, or an ARM machine | Use Google Colab, Kaggle or a Linux x86_64 Jupyter; the lock holds manylinux x86_64 wheels. |\n"
         "| Section 1 fails while downloading, or `The pinned uv wheel failed its size/SHA-256 check` | a network failure, or an altered download | Run the Section 1 install cell again; a repeated mismatch means the download is being altered — never edit the digest. |\n"
+        "| You want the isolated environment somewhere other than `dimer_isolated_env/` | Section 1 builds it in the working directory by default | Set the environment variable `DIMER_ISOLATED_ENV` to a path before running Section 1. |\n"
         "| `holds Python …, not 3.12.12` in Section 1 | an older `dimer_isolated_env/` folder from another notebook version | Delete that folder (or start a fresh runtime) and run the install cell again. |\n"
         "| `The isolated environment's Python process exited` | the worker ran out of memory | Restart the session and choose *Runtime → Run all* again. |\n"
         "| `FileNotFoundError: snapshot file missing` or a `sha256`/`size` `ValueError` in Section 3 | a staged file is incomplete or altered | Delete it from `weights/{MODEL_KEY}/` and run Section 3 again; never edit the manifest. |\n"
@@ -549,13 +557,11 @@ TEMPLATE = {
         "4. With `NUM_BEAMS = 4` (Section 9), the outputs ___ and the scores ___.\n"
         "5. What I would need before trusting this model's summaries or translations on my own text: ___.\n\n"
         "## References\n\n"
-        f"- Repository README: https://github.com/kurtvalcorza/{REPO}/blob/main/README.md\n"
-        f"- Repository model card: https://github.com/kurtvalcorza/{REPO}/blob/main/MODEL_CARD.md\n"
-        f"- Weight provenance: https://github.com/kurtvalcorza/{REPO}/blob/main/docs/WEIGHTS.md\n"
-        "- Upstream model: https://huggingface.co/{MODEL_ID}\n"
-        "- Upstream code: https://github.com/google-research/text-to-text-transfer-transformer\n"
-        "- Exploring the Limits of Transfer Learning with a Unified Text-to-Text Transformer (Raffel et al., JMLR 2020): https://arxiv.org/abs/1910.10683\n"
-        "- TLDR: Extreme Summarization of Scientific Documents (Cachola et al., Findings of EMNLP 2020), the SciTLDR data: https://arxiv.org/abs/2004.15011\n"
-        "- ROUGE: A Package for Automatic Evaluation of Summaries (Lin, 2004): https://aclanthology.org/W04-1013/"
+        "[1] C. Raffel *et al.*, \"Exploring the limits of transfer learning with a unified text-to-text transformer,\" *J. Mach. Learn. Res.*, vol. 21, no. 140, pp. 1–67, 2020. [Online]. Available: https://arxiv.org/abs/1910.10683\n\n"
+        "[2] I. Cachola, K. Lo, A. Cohan, and D. S. Weld, \"TLDR: Extreme summarization of scientific documents,\" in *Findings Assoc. Comput. Linguist.: EMNLP*, 2020 (SciTLDR data). [Online]. Available: https://arxiv.org/abs/2004.15011\n\n"
+        "[3] C.-Y. Lin, \"ROUGE: A package for automatic evaluation of summaries,\" in *Text Summarization Branches Out*, 2004, pp. 74–81. [Online]. Available: https://aclanthology.org/W04-1013/\n\n"
+        "[4] Google Research, \"text-to-text-transfer-transformer,\" GitHub repository. [Online]. Available: https://github.com/google-research/text-to-text-transfer-transformer\n\n"
+        "[5] Upstream model checkpoint. [Online]. Available: https://huggingface.co/{MODEL_ID}\n\n"
+        f"[6] K. Valcorza, \"{REPO},\" README and weight provenance. [Online]. Available: https://github.com/kurtvalcorza/{REPO}/blob/main/README.md, https://github.com/kurtvalcorza/{REPO}/blob/main/docs/WEIGHTS.md; model card: https://github.com/kurtvalcorza/{REPO}/blob/main/MODEL_CARD.md"
     ),
 }

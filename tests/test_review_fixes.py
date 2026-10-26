@@ -246,4 +246,4 @@ def test_t5s_m2_release_record_is_consistent() -> None:
     record = (ROOT / "docs" / "release-verification.md").read_text(encoding="utf-8")
     assert "never run end-to-end" not in record and "will be the first real execution" not in record
     assert "Not recorded: restart status, runtime versions" in record
-    assert "Notebook Specification 2.2" in (ROOT / "tutorials" / "README.md").read_text(encoding="utf-8")
+    assert "Notebook Specification 2.5" in (ROOT / "tutorials" / "README.md").read_text(encoding="utf-8")
