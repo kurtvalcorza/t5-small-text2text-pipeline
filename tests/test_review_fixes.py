@@ -235,7 +235,7 @@ def test_t5s_m1_cancelled_or_multi_file_upload_stops_with_the_rule(notebook: dic
         monkeypatch.setitem(sys.modules, name, mod)
     ns = _namespace(tmp_path, monkeypatch)
     source = _cell(notebook, "import hashlib").replace("USE_BYOD = False", "USE_BYOD = True")
-    with pytest.raises(RuntimeError, match=rf"Upload exactly one \.txt or \.csv file \(received {len(uploads)}\)"):
+    with pytest.raises(ValueError, match=rf"Upload exactly one \.txt or \.csv file \(received {len(uploads)}\)"):  # a BYODRefusal since DAT20
         exec(source, ns)  # noqa: S102
 
 
