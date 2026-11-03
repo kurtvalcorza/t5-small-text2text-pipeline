@@ -1,0 +1,70 @@
+{
+  "repo": "t5-small-text2text-pipeline",
+  "sha": "0fa148e5e2596c19bf70664098a2fed1536f9332",
+  "notebook": "tutorials/t5_small_text2text_colab.ipynb",
+  "blob": "583d75ccd613b5c423ea78a8a19190dc4f36167d",
+  "gpu": "T4",
+  "session": "suite-t5-0fa148e-daab",
+  "started_utc": "2026-11-03T10:50:42+00:00",
+  "runner": "Colab CLI `colab exec -f` on a fresh session (not a browser Run all)",
+  "overrides": [
+    {
+      "name": "USE_BYOD",
+      "from": "False",
+      "to": "True"
+    },
+    {
+      "name": "BYOD_PATH",
+      "from": "''",
+      "to": "'/content/sample_data/california_housing_test.csv'"
+    }
+  ],
+  "run_copy_blob": "e40949db9fcd8509383556764c008e716efdaa01",
+  "run_copy_sha256": "5949a3e2fe9647d9c7579a28056d1f02aeb40003f5d1043882c180b150ae5ef2",
+  "run_copy_note": "refusal run: the run copy is the committed notebook with the listed assignment overrides, cut immediately after the refusal cell and re-serialised (nbformat layout); input_unchanged compares against that copy",
+  "truncated_after_cell": "t5_small_text2text-16",
+  "refusal_cell_ref": "t5_small_text2text-16",
+  "refusal_cell_index": 6,
+  "cells_dropped": 9,
+  "code_cells_dropped": 4,
+  "original_sha256": "70018ba7bbbd67b88883163865337da5e9007f31ce9bb312821695a8254fe979",
+  "status": "[suite-t5-0fa148e-daab] gpu-t4-s-usw1b3-2o7ula6ryeoom | Hardware: T4 | Shape: Standard | Variant: GPU | Status: IDLE",
+  "exec_exit_code": 0,
+  "stopped": true,
+  "stop_verified": true,
+  "wall_s": 94.1,
+  "input_unchanged": true,
+  "executed_file": "t5_small_text2text_colab_0fa148e_colab-cli-t4_output.ipynb",
+  "log_cells": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6
+  ],
+  "log_total": 6,
+  "code_cells": 6,
+  "executed_cells": 5,
+  "errors": [
+    {
+      "cell": "t5_small_text2text-16",
+      "ename": "IsolatedCellRefusal",
+      "evalue": "california_housing_test.csv: california_housing_test.csv: a CSV needs a header with an `input` column (and optionally `reference`); fix the input and run this cell again (the earlier results of this session and their outputs/ files were removed)."
+    }
+  ],
+  "execution_counts": [],
+  "sequential": null,
+  "executed_sha256": "41d95226f49697156332cebbd493f7058408d79815a541a729563c37f6f36d3e",
+  "log_sequential_complete": true,
+  "mode": "expect_refusal",
+  "refusal_line": "Refused: california_housing_test.csv: california_housing_test.csv: a CSV needs a header with an `input` column (and optionally `reference`); fix the input and run this cell again (the earlier results of this session and their outputs/ files were removed).",
+  "halting_cell_index": 6,
+  "halting_cell_id": "t5_small_text2text-16",
+  "error_cells": [
+    6
+  ],
+  "refusal_fail_reasons": [],
+  "refusal_ok": true,
+  "verdict": "PASS"
+}
